@@ -3,7 +3,7 @@
   <h2>Заметка ID: {{ note.id }}</h2>
   <hr>
   <h3>{{ note.title }}</h3>
-  <p>{{ note.text }}</p>
+  <p>{{ note.text|linebreaksbr }}</p>
   <hr>
   <p>
     <a href="{% url 'notes:edit' slug=note.slug %}">Редактировать</a>

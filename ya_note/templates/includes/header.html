@@ -5,9 +5,9 @@
         <span class="text-danger"><b>Ya</b></span>Note
       </a>
       {% if user.is_authenticated %}
-          <div class="nav-item align-self-center mt-1">
-            пользователя {{ user.username }}
-          </div>
+        <div class="nav-item align-self-center mt-1">
+          пользователя {{ user.username }}
+        </div>
         <div class="spacer flex-grow-1"></div>
       {% endif %}
       <ul class="nav nav-pills">
@@ -20,8 +20,14 @@
           </li>
           <li class="nav-item">
             <form method="post" action="{% url 'users:logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="nav-link" style="background: none; border: none; cursor: pointer;">Выйти</button>
+              {% csrf_token %}
+              <button
+                type="submit"
+                class="nav-link"
+                style="background: none; border: none; cursor: pointer;"
+              >
+                Выйти
+              </button>
             </form>
           </li>
         {% else %}

@@ -4,7 +4,7 @@
   <h3>{{ comment.news.title }}</h3>
   <hr>
   <p>{{ comment.created }}</p>
-  <p>{{ comment.text }}</p>
+  <p>{{ comment.text|linebreaksbr }}</p>
   <form class="form-horizontal" method="post">
     {% csrf_token %}
     <div class="form-actions">
