@@ -1,76 +1,52 @@
 from http import HTTPStatus
 
 import pytest
-from django.urls import reverse
+from pytest_lazyfixture import lazy_fixture as lf
 
 
 pytestmark = pytest.mark.django_db
 
 
-def test_home_page_is_available_for_anonymous_user(client):
-    response = client.get(reverse('news:home'))
-
-    assert response.status_code == HTTPStatus.OK
-
-
-def test_news_detail_page_is_available_for_anonymous_user(client, news):
-    url = reverse('news:detail', args=(news.pk,))
-
-    response = client.get(url)
-
-    assert response.status_code == HTTPStatus.OK
-
-
-@pytest.mark.parametrize('url_name', ('news:edit', 'news:delete'))
-def test_comment_pages_are_available_for_author(
-        author_client,
-        comment,
-        url_name,
+@pytest.mark.parametrize(
+    'request_client, url, expected_status',
+    (
+        (lf('client'), lf('home_url'), HTTPStatus.OK),
+        (lf('client'), lf('detail_url'), HTTPStatus.OK),
+        (lf('author_client'), lf('edit_url'), HTTPStatus.OK),
+        (lf('author_client'), lf('delete_url'), HTTPStatus.OK),
+        (lf('user_client'), lf('edit_url'), HTTPStatus.NOT_FOUND),
+        (lf('user_client'), lf('delete_url'), HTTPStatus.NOT_FOUND),
+        (lf('client'), lf('signup_url'), HTTPStatus.OK),
+        (lf('client'), lf('login_url'), HTTPStatus.OK),
+    ),
+)
+def test_get_requests_have_expected_statuses(
+        request_client,
+        url,
+        expected_status,
 ):
-    url = reverse(url_name, args=(comment.pk,))
-
-    response = author_client.get(url)
-
-    assert response.status_code == HTTPStatus.OK
+    response = request_client.get(url)
+    assert response.status_code == expected_status
 
 
-@pytest.mark.parametrize('url_name', ('news:edit', 'news:delete'))
+@pytest.mark.parametrize(
+    'request_client, url, expected_status',
+    ((lf('client'), lf('logout_url'), HTTPStatus.OK),),
+)
+def test_post_requests_have_expected_statuses(
+        request_client,
+        url,
+        expected_status,
+):
+    response = request_client.post(url)
+    assert response.status_code == expected_status
+
+
+@pytest.mark.parametrize('url', (lf('edit_url'), lf('delete_url')))
 def test_anonymous_user_is_redirected_from_comment_pages(
         client,
-        comment,
-        url_name,
+        login_url,
+        url,
 ):
-    url = reverse(url_name, args=(comment.pk,))
-    login_url = reverse('users:login')
-
     response = client.get(url)
-
     assert response.url == f'{login_url}?next={url}'
-
-
-@pytest.mark.parametrize('url_name', ('news:edit', 'news:delete'))
-def test_user_cannot_access_other_authors_comment_pages(
-        user_client,
-        comment,
-        url_name,
-):
-    url = reverse(url_name, args=(comment.pk,))
-
-    response = user_client.get(url)
-
-    assert response.status_code == HTTPStatus.NOT_FOUND
-
-
-@pytest.mark.parametrize('url_name, method', (
-    ('users:signup', 'get'),
-    ('users:login', 'get'),
-    ('users:logout', 'post'),
-))
-def test_auth_pages_are_available_for_anonymous_user(
-        client,
-        url_name,
-        method,
-):
-    response = getattr(client, method)(reverse(url_name))
-
-    assert response.status_code == HTTPStatus.OK
